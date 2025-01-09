@@ -41,7 +41,7 @@ To get `Token`, `WorkerID`, `id` and `owneraddress` follow this steps:
 
 - Login to your account, and after login check the `network` tab again, search websocket connection `(orch?auth...)` and open![Screenshot 2025-01-10 022631](https://github.com/user-attachments/assets/a09ab2e5-7873-44c4-a3ce-26feb0ee1dd0)
 
-- open `payload` tab and copy the bearer `token`![no 4](https://github.com/user-attachments/assets/1a14f452-ae2a-46e6-8d14-1a4d24ebd357)
+- open `payload` tab and copy the `bearer/authtoken`![no 4](https://github.com/user-attachments/assets/1a14f452-ae2a-46e6-8d14-1a4d24ebd357)
 
 - open `Messages` tab and copy the `WorkerID/identity`, `id` and `owneraddress` ![no 3](https://github.com/user-attachments/assets/ec6069e8-6a22-45cd-bdc5-ac9352b155f5)
 
