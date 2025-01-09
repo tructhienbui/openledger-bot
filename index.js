@@ -137,6 +137,7 @@ async function processRequests(useProxy) {
     return (async () => {
       await getAccountID(token, index, useProxy);
       if (accountIDs[token]) {
+        await getAccountDetails(token, index, useProxy);
         connectWebSocket({ token, workerID, id, ownerAddress }, index, useProxy);
       }
     })();
