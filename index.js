@@ -133,13 +133,17 @@ async function getAccountDetails(token, index, useProxy) {
 }
 
 async function processRequests(useProxy) {
-  for (const [index, { token, workerID, id, ownerAddress }] of tokens.entries()) {
-    await getAccountID(token, index, useProxy);
-    if (accountIDs[token]) {
-      await getAccountDetails(token, index, useProxy);
-      connectWebSocket({ token, workerID, id, ownerAddress }, index, useProxy);
-    }
-  }
+  const promises = tokens.map(({ token, workerID, id, ownerAddress }, index) => {
+    return (async () => {
+      await getAccountID(token, index, useProxy);
+      if (accountIDs[token]) {
+        await getAccountDetails(token, index, useProxy);
+        connectWebSocket({ token, workerID, id, ownerAddress }, index, useProxy);
+      }
+    })();
+  });
+
+  await Promise.all(promises);
 }
 
 function connectWebSocket({ token, workerID, id, ownerAddress }, index, useProxy) {
