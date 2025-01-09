@@ -137,7 +137,6 @@ async function processRequests(useProxy) {
     return (async () => {
       await getAccountID(token, index, useProxy);
       if (accountIDs[token]) {
-        await getAccountDetails(token, index, useProxy);
         connectWebSocket({ token, workerID, id, ownerAddress }, index, useProxy);
       }
     })();
@@ -216,9 +215,16 @@ function connectWebSocket({ token, workerID, id, ownerAddress }, index, useProxy
   });
 }
 
+async function updateAccountDetailsPeriodically(useProxy) {
+  setInterval(async () => {
+    const promises = tokens.map(({ token }, index) => getAccountDetails(token, index, useProxy));
+    await Promise.all(promises);
+  }, 5 * 60 * 1000);
+}
+
 (async () => {
   displayHeader();
   const useProxy = await askUseProxy();
-  processRequests(useProxy);
-  setInterval(() => processRequests(useProxy), 5 * 60 * 1000);
+  await processRequests(useProxy);
+  updateAccountDetailsPeriodically(useProxy);
 })();
