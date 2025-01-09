@@ -3,6 +3,7 @@ Openledger Bot is a simple tool designed to automate the node interaction.
 
 ## Features
 - **Automated node interaction**
+- **Proxy support**
 
 ## Prerequisites
 - [Node.js](https://nodejs.org/) (version 14 or higher)
@@ -57,6 +58,7 @@ http://username:password@ip:port
 ```bash
 node index.js
 ```
+Do not delete `data.json`, it store your websocket data. 
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
