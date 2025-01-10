@@ -38,7 +38,7 @@ To get `Token`, `WorkerID`, `id` and `owneraddress` follow this steps:
 - Download the [Extension](https://chromewebstore.google.com/detail/teneo-community-node/emcclcoaglgcpoognfiggmhnhgabppkm)
 - Open Extension and right click and select `inspect`![no 1](https://github.com/user-attachments/assets/8abd970b-c1bc-44e1-b305-a9d76e7af063)
 
-- Go to `network` tab![no 2](https://github.com/user-attachments/assets/4fa5e1ce-b49c-46c4-b70e-26307d465d62)
+- Go to `network` tab and make sure the filtering is `all`![no 2](https://github.com/user-attachments/assets/4fa5e1ce-b49c-46c4-b70e-26307d465d62)
 
 - Login to your account, and after login check the `network` tab again, search websocket connection `(orch?auth...)` and open![Screenshot 2025-01-10 022631](https://github.com/user-attachments/assets/a09ab2e5-7873-44c4-a3ce-26feb0ee1dd0)
 
