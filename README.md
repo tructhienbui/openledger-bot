@@ -35,7 +35,7 @@ token2:workerID2:id2:ownerAddress2
 ```
 To get `Token`, `WorkerID`, `id` and `owneraddress` follow this steps:
 - Register account first, you can [click here to register](https://testnet.openledger.xyz/?referral_code=ffqrnwqlzq)
-- Download the [Extension](https://chromewebstore.google.com/detail/teneo-community-node/emcclcoaglgcpoognfiggmhnhgabppkm)
+- Download the [Extension](https://chromewebstore.google.com/detail/openledger-node/ekbbplmjjgoobhdlffmgeokalelnmjjc)
 - Open Extension and right click and select `inspect`![no 1](https://github.com/user-attachments/assets/8abd970b-c1bc-44e1-b305-a9d76e7af063)
 
 - Go to `network` tab and make sure the filtering is `all`![no 2](https://github.com/user-attachments/assets/4fa5e1ce-b49c-46c4-b70e-26307d465d62)
@@ -67,7 +67,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Note
 This script only for testing purpose, using this script might violates ToS and may get your account permanently banned.
 
-Extension link : [Extension](https://chromewebstore.google.com/detail/teneo-community-node/emcclcoaglgcpoognfiggmhnhgabppkm)
+Extension link : [Extension](https://chromewebstore.google.com/detail/openledger-node/ekbbplmjjgoobhdlffmgeokalelnmjjc)
 Dashboard Link : [Dashboard](https://testnet.openledger.xyz/?referral_code=ffqrnwqlzq)
 
 My reff code if you want to use :) : https://testnet.openledger.xyz/?referral_code=ffqrnwqlzq
