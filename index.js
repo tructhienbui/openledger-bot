@@ -150,6 +150,7 @@ function connectWebSocket({ token, workerID, id, ownerAddress }, index, useProxy
   const wsUrl = `wss://apitn.openledger.xyz/ws/v1/orch?authToken=${token}`;
   let ws = new WebSocket(wsUrl);
   const proxyText = useProxy ? proxies[index] : 'False';
+  let heartbeatInterval;
 
   function sendHeartbeat() {
     const { gpu: assignedGPU, storage: assignedStorage } = getOrAssignResources(workerID);
@@ -196,7 +197,7 @@ function connectWebSocket({ token, workerID, id, ownerAddress }, index, useProxy
     };
     ws.send(JSON.stringify(registerMessage));
 
-    setInterval(sendHeartbeat, 30000);
+    heartbeatInterval = setInterval(sendHeartbeat, 30000);
   });
 
   ws.on('message', function incoming(data) {
@@ -209,10 +210,11 @@ function connectWebSocket({ token, workerID, id, ownerAddress }, index, useProxy
 
   ws.on('close', function close() {
     console.log(`\x1b[33m[${index + 1}]\x1b[0m WebSocket connection closed for workerID \x1b[33m${workerID}\x1b[0m, AccountID \x1b[33m${accountIDs[token]}\x1b[0m, Proxy: \x1b[36m${proxyText}\x1b[0m`);
+    clearInterval(heartbeatInterval);
     setTimeout(() => {
       console.log(`\x1b[33m[${index + 1}]\x1b[0m Reconnecting WebSocket for workerID: \x1b[33m${workerID}\x1b[0m, AccountID \x1b[33m${accountIDs[token]}\x1b[0m, Proxy: \x1b[36m${proxyText}\x1b[0m`);
       connectWebSocket({ token, workerID, id, ownerAddress }, index, useProxy);
-    }, 5000);
+    }, 30000);
   });
 }
 
