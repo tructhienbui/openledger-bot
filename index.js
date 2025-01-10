@@ -3,6 +3,7 @@ const WebSocket = require('ws');
 const axios = require('axios');
 const readline = require('readline');
 const { HttpsProxyAgent } = require('https-proxy-agent');
+const { v4: uuidv4 } = require('uuid');
 
 function displayHeader() {
   const width = process.stdout.columns;
@@ -143,12 +144,53 @@ async function getAccountDetails(token, index, useProxy) {
   }
 }
 
+async function checkAndClaimReward(token, index, useProxy) {
+  try {
+    const proxyUrl = proxies[index];
+    const agent = useProxy ? new HttpsProxyAgent(proxyUrl) : undefined;
+
+    const claimDetailsResponse = await axios.get('https://rewardstn.openledger.xyz/api/v1/claim_details', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      httpsAgent: agent
+    });
+
+    const claimed = claimDetailsResponse.data.data.claimed;
+
+    if (!claimed) {
+      const claimRewardResponse = await axios.get('https://rewardstn.openledger.xyz/api/v1/claim_reward', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        httpsAgent: agent
+      });
+
+      if (claimRewardResponse.data.status === 'SUCCESS') {
+        console.log(`\x1b[33m[${index + 1}]\x1b[0m AccountID \x1b[36m${accountIDs[token]}\x1b[0m \x1b[32mClaimed daily reward successfully!\x1b[0m`);
+      }
+    }
+  } catch (error) {
+  }
+}
+
+async function checkAndClaimRewardsPeriodically(useProxy) {
+  const promises = tokens.map(({ token }, index) => checkAndClaimReward(token, index, useProxy));
+  await Promise.all(promises);
+
+  setInterval(async () => {
+    const promises = tokens.map(({ token }, index) => checkAndClaimReward(token, index, useProxy));
+    await Promise.all(promises);
+  }, 12 * 60 * 60 * 1000);
+}
+
 async function processRequests(useProxy) {
   const promises = tokens.map(({ token, workerID, id, ownerAddress }, index) => {
     return (async () => {
       await getAccountID(token, index, useProxy);
       if (accountIDs[token]) {
         await getAccountDetails(token, index, useProxy);
+        await checkAndClaimReward(token, index, useProxy);
         connectWebSocket({ token, workerID, id, ownerAddress }, index, useProxy);
       }
     })();
@@ -162,6 +204,9 @@ function connectWebSocket({ token, workerID, id, ownerAddress }, index, useProxy
   let ws = new WebSocket(wsUrl);
   const proxyText = useProxy ? proxies[index] : 'False';
   let heartbeatInterval;
+
+  const browserID = uuidv4();
+  const connectionUUID = uuidv4();
 
   function sendHeartbeat() {
     const { gpu: assignedGPU, storage: assignedStorage } = getOrAssignResources(workerID);
@@ -239,6 +284,7 @@ async function updateAccountDetailsPeriodically(useProxy) {
 (async () => {
   displayHeader();
   const useProxy = await askUseProxy();
+  await checkAndClaimRewardsPeriodically(useProxy);
   await processRequests(useProxy);
   updateAccountDetailsPeriodically(useProxy);
 })();
