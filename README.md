@@ -1,8 +1,9 @@
 # Openledger Bot
-Openledger Bot is a simple tool designed to automate the node interaction.
+Openledger Bot is a simple tool designed to automate the node and daily reward claim interaction.
 
 ## Features
 - **Automated node interaction**
+- **Auto claim daily rewards**
 - **Proxy support**
 
 ## Prerequisites
