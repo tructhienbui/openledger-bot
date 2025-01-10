@@ -19,9 +19,14 @@ function displayHeader() {
 }
 
 const tokens = fs.readFileSync('account.txt', 'utf8').trim().split(/\s+/).map(line => {
-  const [token, workerID, id, ownerAddress] = line.split(':');
+  const parts = line.split(':');
+  if (parts.length !== 4) {
+    console.warn(`Skipping malformed line: ${line}`);
+    return null;
+  }
+  const [token, workerID, id, ownerAddress] = parts;
   return { token: token.trim(), workerID: workerID.trim(), id: id.trim(), ownerAddress: ownerAddress.trim() };
-});
+}).filter(tokenObj => tokenObj !== null);
 
 let proxies = [];
 try {
