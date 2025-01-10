@@ -84,95 +84,121 @@ async function askUseProxy() {
   });
 }
 
-async function getAccountID(token, index, useProxy) {
+async function getAccountID(token, index, useProxy, retries = 3, delay = 60000) {
   const proxyUrl = proxies[index];
   const agent = useProxy ? new HttpsProxyAgent(proxyUrl) : undefined;
   const proxyText = useProxy ? proxyUrl : 'False';
 
-  try {
-    const response = await axios.get('https://apitn.openledger.xyz/api/v1/users/me', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      httpsAgent: agent
-    });
-    const accountID = response.data.data.id;
-    accountIDs[token] = accountID;
-    console.log(`\x1b[33m[${index + 1}]\x1b[0m AccountID \x1b[36m${accountID}\x1b[0m, Proxy: \x1b[36m${proxyText}\x1b[0m`);
-  } catch (error) {
-    console.error(`\x1b[33m[${index + 1}]\x1b[0m Error getting accountID for token index ${index}:`, error.message);
-    console.log(`\x1b[33m[${index + 1}]\x1b[0m Error getting accountID for token index ${index}: Request failed with status code 500, retrying in 1 minute...`);
-    setTimeout(() => getAccountID(token, index, useProxy), 60000);
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await axios.get('https://apitn.openledger.xyz/api/v1/users/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        httpsAgent: agent
+      });
+      const accountID = response.data.data.id;
+      accountIDs[token] = accountID;
+      console.log(`\x1b[33m[${index + 1}]\x1b[0m AccountID \x1b[36m${accountID}\x1b[0m, Proxy: \x1b[36m${proxyText}\x1b[0m`);
+      return;
+    } catch (error) {
+      console.error(`\x1b[33m[${index + 1}]\x1b[0m Error getting accountID for token index ${index}, attempt ${attempt}:`, error.message);
+      if (attempt < retries) {
+        console.log(`\x1b[33m[${index + 1}]\x1b[0m Retrying in ${delay / 1000} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        console.error(`\x1b[33m[${index + 1}]\x1b[0m All retry attempts failed.`);
+      }
+    }
   }
 }
 
-async function getAccountDetails(token, index, useProxy) {
-  try {
-    const proxyUrl = proxies[index];
-    const agent = useProxy ? new HttpsProxyAgent(proxyUrl) : undefined;
-    const proxyText = useProxy ? proxyUrl : 'False';
+async function getAccountDetails(token, index, useProxy, retries = 3, delay = 60000) {
+  const proxyUrl = proxies[index];
+  const agent = useProxy ? new HttpsProxyAgent(proxyUrl) : undefined;
+  const proxyText = useProxy ? proxyUrl : 'False';
 
-    const rewardRealtimeResponse = await axios.get('https://rewardstn.openledger.xyz/api/v1/reward_realtime', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      httpsAgent: agent
-    });
-
-    const rewardHistoryResponse = await axios.get('https://rewardstn.openledger.xyz/api/v1/reward_history', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      httpsAgent: agent
-    });
-
-    const rewardResponse = await axios.get('https://rewardstn.openledger.xyz/api/v1/reward', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      httpsAgent: agent
-    });
-
-    const totalHeartbeats = parseInt(rewardRealtimeResponse.data.data[0].total_heartbeats, 10);
-    const totalPoints = parseInt(rewardHistoryResponse.data.data[0].total_points, 10);
-    const totalPointFromReward = parseFloat(rewardResponse.data.data.totalPoint);
-    const epochName = rewardResponse.data.data.name;
-
-    const total = totalHeartbeats + totalPointFromReward;
-
-    console.log(`\x1b[33m[${index + 1}]\x1b[0m AccountID \x1b[36m${accountIDs[token]}\x1b[0m, Total Heartbeat \x1b[32m${totalHeartbeats}\x1b[0m, Total Points \x1b[32m${total.toFixed(2)}\x1b[0m (\x1b[33m${epochName}\x1b[0m), Proxy: \x1b[36m${proxyText}\x1b[0m`);
-  } catch (error) {
-    console.error(`Error getting account details for token index ${index}:`, error.message);
-  }
-}
-
-async function checkAndClaimReward(token, index, useProxy) {
-  try {
-    const proxyUrl = proxies[index];
-    const agent = useProxy ? new HttpsProxyAgent(proxyUrl) : undefined;
-
-    const claimDetailsResponse = await axios.get('https://rewardstn.openledger.xyz/api/v1/claim_details', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      httpsAgent: agent
-    });
-
-    const claimed = claimDetailsResponse.data.data.claimed;
-
-    if (!claimed) {
-      const claimRewardResponse = await axios.get('https://rewardstn.openledger.xyz/api/v1/claim_reward', {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const rewardRealtimeResponse = await axios.get('https://rewardstn.openledger.xyz/api/v1/reward_realtime', {
         headers: {
           'Authorization': `Bearer ${token}`
         },
         httpsAgent: agent
       });
 
-      if (claimRewardResponse.data.status === 'SUCCESS') {
-        console.log(`\x1b[33m[${index + 1}]\x1b[0m AccountID \x1b[36m${accountIDs[token]}\x1b[0m \x1b[32mClaimed daily reward successfully!\x1b[0m`);
+      const rewardHistoryResponse = await axios.get('https://rewardstn.openledger.xyz/api/v1/reward_history', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        httpsAgent: agent
+      });
+
+      const rewardResponse = await axios.get('https://rewardstn.openledger.xyz/api/v1/reward', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        httpsAgent: agent
+      });
+
+      const totalHeartbeats = parseInt(rewardRealtimeResponse.data.data[0].total_heartbeats, 10);
+      const totalPoints = parseInt(rewardHistoryResponse.data.data[0].total_points, 10);
+      const totalPointFromReward = parseFloat(rewardResponse.data.data.totalPoint);
+      const epochName = rewardResponse.data.data.name;
+
+      const total = totalHeartbeats + totalPointFromReward;
+
+      console.log(`\x1b[33m[${index + 1}]\x1b[0m AccountID \x1b[36m${accountIDs[token]}\x1b[0m, Total Heartbeat \x1b[32m${totalHeartbeats}\x1b[0m, Total Points \x1b[32m${total.toFixed(2)}\x1b[0m (\x1b[33m${epochName}\x1b[0m), Proxy: \x1b[36m${proxyText}\x1b[0m`);
+      return;
+    } catch (error) {
+      console.error(`Error getting account details for token index ${index}, attempt ${attempt}:`, error.message);
+      if (attempt < retries) {
+        console.log(`Retrying in ${delay / 1000} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        console.error(`All retry attempts failed for account details.`);
       }
     }
-  } catch (error) {
+  }
+}
+
+async function checkAndClaimReward(token, index, useProxy, retries = 3, delay = 60000) {
+  const proxyUrl = proxies[index];
+  const agent = useProxy ? new HttpsProxyAgent(proxyUrl) : undefined;
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const claimDetailsResponse = await axios.get('https://rewardstn.openledger.xyz/api/v1/claim_details', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        httpsAgent: agent
+      });
+
+      const claimed = claimDetailsResponse.data.data.claimed;
+
+      if (!claimed) {
+        const claimRewardResponse = await axios.get('https://rewardstn.openledger.xyz/api/v1/claim_reward', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          httpsAgent: agent
+        });
+
+        if (claimRewardResponse.data.status === 'SUCCESS') {
+          console.log(`\x1b[33m[${index + 1}]\x1b[0m AccountID \x1b[36m${accountIDs[token]}\x1b[0m \x1b[32mClaimed daily reward successfully!\x1b[0m`);
+        }
+      }
+      return; // Exit the function if successful
+    } catch (error) {
+      console.error(`Error claiming reward for token index ${index}, attempt ${attempt}:`, error.message);
+      if (attempt < retries) {
+        console.log(`Retrying in ${delay / 1000} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        console.error(`All retry attempts failed for claiming reward.`);
+      }
+    }
   }
 }
 
