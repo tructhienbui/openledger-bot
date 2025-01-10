@@ -92,12 +92,13 @@ async function askUseProxy() {
   });
 }
 
-async function getAccountID(token, index, useProxy, retries = 3, delay = 60000) {
+async function getAccountID(token, index, useProxy, delay = 60000) {
   const proxyUrl = proxies[index];
   const agent = useProxy ? new HttpsProxyAgent(proxyUrl) : undefined;
   const proxyText = useProxy ? proxyUrl : 'False';
 
-  for (let attempt = 1; attempt <= retries; attempt++) {
+  let attempt = 1;
+  while (true) {
     try {
       const response = await axios.get('https://apitn.openledger.xyz/api/v1/users/me', {
         headers: {
@@ -111,12 +112,9 @@ async function getAccountID(token, index, useProxy, retries = 3, delay = 60000) 
       return;
     } catch (error) {
       console.error(`\x1b[33m[${index + 1}]\x1b[0m Error getting accountID for token index ${index}, attempt ${attempt}:`, error.message);
-      if (attempt < retries) {
-        console.log(`\x1b[33m[${index + 1}]\x1b[0m Retrying in ${delay / 1000} seconds...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      } else {
-        console.error(`\x1b[33m[${index + 1}]\x1b[0m All retry attempts failed.`);
-      }
+      console.log(`\x1b[33m[${index + 1}]\x1b[0m Retrying in ${delay / 1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      attempt++;
     }
   }
 }
