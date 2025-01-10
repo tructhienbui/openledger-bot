@@ -18,9 +18,9 @@ function displayHeader() {
   });
 }
 
-const tokens = fs.readFileSync('account.txt', 'utf8').trim().split('\n').map(line => {
+const tokens = fs.readFileSync('account.txt', 'utf8').trim().split(/\s+/).map(line => {
   const [token, workerID, id, ownerAddress] = line.split(':');
-  return { token, workerID, id, ownerAddress };
+  return { token: token.trim(), workerID: workerID.trim(), id: id.trim(), ownerAddress: ownerAddress.trim() };
 });
 
 let proxies = [];
@@ -54,11 +54,14 @@ function getOrAssignResources(workerID) {
       gpu: randomGPU,
       storage: randomStorage
     };
-    fs.writeFileSync('data.json', JSON.stringify(dataAssignments, null, 2));
+    try {
+      fs.writeFileSync('data.json', JSON.stringify(dataAssignments, null, 2));
+    } catch (error) {
+      console.error('Error writing to data.json:', error.message);
+    }
   }
   return dataAssignments[workerID];
 }
-
 async function askUseProxy() {
   const rl = readline.createInterface({
     input: process.stdin,
