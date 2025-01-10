@@ -115,7 +115,15 @@ async function getAccountDetails(token, index, useProxy) {
       },
       httpsAgent: agent
     });
+
     const rewardHistoryResponse = await axios.get('https://rewardstn.openledger.xyz/api/v1/reward_history', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      httpsAgent: agent
+    });
+
+    const rewardResponse = await axios.get('https://rewardstn.openledger.xyz/api/v1/reward', {
       headers: {
         'Authorization': `Bearer ${token}`
       },
@@ -124,9 +132,12 @@ async function getAccountDetails(token, index, useProxy) {
 
     const totalHeartbeats = parseInt(rewardRealtimeResponse.data.data[0].total_heartbeats, 10);
     const totalPoints = parseInt(rewardHistoryResponse.data.data[0].total_points, 10);
-    const total = totalHeartbeats + totalPoints;
+    const totalPointFromReward = parseFloat(rewardResponse.data.data.totalPoint);
+    const epochName = rewardResponse.data.data.name;
 
-    console.log(`\x1b[33m[${index + 1}]\x1b[0m AccountID \x1b[36m${accountIDs[token]}\x1b[0m, Total Heartbeat \x1b[32m${totalHeartbeats}\x1b[0m, Total Points \x1b[32m${total}\x1b[0m, Proxy: \x1b[36m${proxyText}\x1b[0m`);
+    const total = totalHeartbeats + totalPointFromReward;
+
+    console.log(`\x1b[33m[${index + 1}]\x1b[0m AccountID \x1b[36m${accountIDs[token]}\x1b[0m, Total Heartbeat \x1b[32m${totalHeartbeats}\x1b[0m, Total Points \x1b[32m${total.toFixed(2)}\x1b[0m (\x1b[33m${epochName}\x1b[0m), Proxy: \x1b[36m${proxyText}\x1b[0m`);
   } catch (error) {
     console.error(`Error getting account details for token index ${index}:`, error.message);
   }
