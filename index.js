@@ -195,7 +195,7 @@ async function checkAndClaimReward(token, index, useProxy, retries = 3, delay = 
           console.log(`\x1b[33m[${index + 1}]\x1b[0m AccountID \x1b[36m${accountIDs[token]}\x1b[0m \x1b[32mClaimed daily reward successfully!\x1b[0m`);
         }
       }
-      return; // Exit the function if successful
+      return;
     } catch (error) {
       console.error(`Error claiming reward for token index ${index}, attempt ${attempt}:`, error.message);
       if (attempt < retries) {
