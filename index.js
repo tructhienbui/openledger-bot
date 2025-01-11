@@ -3,8 +3,28 @@ const WebSocket = require('ws');
 const axios = require('axios');
 const readline = require('readline');
 const { HttpsProxyAgent } = require('https-proxy-agent');
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4, v3:uuidv3 } = require('uuid');
 
+// Set default axios headers
+let headers = {
+	"accept": "application/json, text/plain, */*",
+	"accept-language": "en-US,en;q=0.9,vi;q=0.8",
+	"content-type": "application/json",
+	"dnt": 1,
+	"origin": "chrome-extension://ekbbplmjjgoobhdlffmgeokalelnmjjc",
+	"referer": "chrome-extension://ekbbplmjjgoobhdlffmgeokalelnmjjc",
+	"priority": "u=1, i",
+	"sec-ch-ua": '"Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"',
+	"sec-ch-ua-mobile": "?0",
+	"sec-ch-ua-platform": "Windows",
+	"sec-fetch-dest": "empty",
+	"sec-fetch-mode": "cors",
+	"sec-fetch-site": "same-site",
+	"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+};
+axios.defaults.headers = headers;
+
+//
 function displayHeader() {
   const width = process.stdout.columns;
   const headerLines = [
@@ -233,14 +253,21 @@ async function processRequests(useProxy) {
   await Promise.all(promises);
 }
 
-function connectWebSocket({ token, workerID, id, ownerAddress }, index, useProxy) {
-  const wsUrl = `wss://apitn.openledger.xyz/ws/v1/orch?authToken=${token}`;
-  let ws = new WebSocket(wsUrl);
-  const proxyText = useProxy ? proxies[index] : 'False';
+function connectWebSocket({ token, workerID, old_id, ownerAddress }, index, useProxy) {
+  const proxyUrl = proxies[index];
+	const proxyText = useProxy ? proxyUrl : 'False';
+	
+	const options = {
+		agent: new HttpsProxyAgent(proxyUrl)
+	};
+	const wsUrl = `wss://apitn.openledger.xyz/ws/v1/orch?authToken=${token}`;
+	let ws = new WebSocket(wsUrl, options);
+  
   let heartbeatInterval;
 
   const browserID = uuidv4();
   const connectionUUID = uuidv4();
+  const id = uuidv3(proxyUrl, uuidv3.DNS); // Work for proxy case only
 
   function sendHeartbeat() {
     const { gpu: assignedGPU, storage: assignedStorage } = getOrAssignResources(workerID);
@@ -255,7 +282,7 @@ function connectWebSocket({ token, workerID, id, ownerAddress }, index, useProxy
         Capacity: {
           AvailableMemory: (Math.random() * 32).toFixed(2),
           AvailableStorage: assignedStorage,
-          AvailableGPU: assignedGPU,
+          AvailableGPU: "", //assignedGPU,
           AvailableModels: []
         }
       },
